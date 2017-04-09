@@ -1,7 +1,8 @@
-var points = Array( 30 );
+var points = Array( 25 );
 var triangleLayer;
 var thickness = 1;
 var speed = 2;
+
 window.onload = function() {
 	// Setup paper.js
 	paper.setup( document.getElementById( 'canvas' ) );
@@ -19,15 +20,17 @@ window.onload = function() {
 
 function setup( item, svg ) {
 	// Draw outline circle
-	var circle = new Path.Circle( paper.view.center, paper.view.size.height * 0.49 );
-	circle.strokeColor = 'black';
-	circle.strokeWidth = thickness;
+	var circle = new Path.Circle( paper.view.center, paper.view.size.height * 0.48 );
+	// circle.strokeColor = 'black';
+	circle.fillColor = 'black';
+	// circle.strokeWidth = 2;
 
 	// Process SVG into H-shape
 	path = item.children[1].children[0].children[0];
 	paper.projects[0].layers[0].addChild( path );
-	path.strokeColor = 'black';
-	path.strokeWidth = thickness;
+	path.strokeColor = 'white';
+	path.strokeWidth = 2;
+	// path.fillColor = 'white';
 	path.fitBounds( new Size( paper.view.size.width * 0.8, paper.view.size.height * 0.8 ) );
 	path.translate( new Point(
 		paper.view.center.x - path.bounds.center.x,
@@ -43,6 +46,7 @@ function setup( item, svg ) {
 
 	// Create empty layer for delaunay triangles
 	triangleLayer = new Layer();
+	// triangleLayer.sendToBack();
 
 	// On new frame redraw
 	view.onFrame = drawFrame;
@@ -73,8 +77,11 @@ function DelaunayRender( points ) {
 	var triangles = Delaunay.triangulate( vertices );
 	for ( i = triangles.length; i; ) {
 		var path = new Path();
-		path.strokeColor = 'rgba( 0, 0, 0, 0.1 )';
-		path.strokeWidth = thickness;
+		// path.strokeColor = 'rgba( 0, 0, 255, 0.15 )';
+		path.strokeColor = 'rgba( 255, 255, 255, .25 )';
+		// path.strokeColor = 'rgba( 0, 0, 0, .25 )';
+		path.strokeWidth = 2;
+		path.strokeJoin = 'round';
 		--i; addVertexPath( path, vertices[triangles[i]] );
 		--i; addVertexPath( path, vertices[triangles[i]] );
 		--i; addVertexPath( path, vertices[triangles[i]] );
@@ -85,8 +92,8 @@ function DelaunayRender( points ) {
 function addVertexPath( path, vertex ) {
 	var point = new Point( vertex[0], vertex[1] );
 	path.add( point );
-	var circle = new Path.Circle( point, thickness * 1.25 );
-	circle.fillColor = 'black';
+	var circle = new Path.Circle( point, 3 );
+	circle.fillColor = 'white';
 	triangleLayer.addChild( circle );
 }
 
