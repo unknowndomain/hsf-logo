@@ -2,39 +2,30 @@ var points = Array( 30 );
 var triangleLayer;
 var thickness = 1;
 var speed = 2;
-
 window.onload = function() {
-	var logo = document.getElementById( 'logo' );
-	paper.setup( logo );
+	// Setup paper.js
+	paper.setup( document.getElementById( 'canvas' ) );
 	paper.install( window );
 
+	// Save PNG on lick
+	view.onClick = save;
+
+	// Import SVG
+	paper.projects[0].importSVG( 'https://raw.githubusercontent.com/unknowndomain/hsf-logo/master/logo.svg', {
+		insert: false,
+		onLoad: setup
+	} );
+};
+
+function setup( item, svg ) {
 	// Draw outline circle
 	var circle = new Path.Circle( paper.view.center, paper.view.size.height * 0.49 );
 	circle.strokeColor = 'black';
 	circle.strokeWidth = thickness;
 
-	var shape = [
-		[ 75, 231 ],
-		[ 115, 191 ],
-		[ 189, 265 ],
-		[ 264, 189 ],
-		[ 190, 115 ],
-		[ 230, 75 ],
-		[ 425, 269 ],
-		[ 384, 309 ],
-		[ 298, 223 ],
-		[ 222, 298 ],
-		[ 309, 384 ],
-		[ 269, 425 ],
-		[ 75, 231 ]
-	];
-
-	// Draw letter H
-	var path = new Path();
-	for ( var point in shape ) {
-		path.add( new Point( shape[point][0], shape[point][1] ) );
-	}
-	path.closePath();
+	// Process SVG into H-shape
+	path = item.children[1].children[0].children[0];
+	paper.projects[0].layers[0].addChild( path );
 	path.strokeColor = 'black';
 	path.strokeWidth = thickness;
 	path.fitBounds( new Size( paper.view.size.width * 0.8, paper.view.size.height * 0.8 ) );
@@ -42,6 +33,7 @@ window.onload = function() {
 		paper.view.center.x - path.bounds.center.x,
 		paper.view.center.y - path.bounds.center.y
 	) );
+	path.applyMatrix = true;
 
 	// Create points along the H
 	for ( i = points.length; i -- ; ) {
@@ -49,24 +41,25 @@ window.onload = function() {
 		points[i] = p;
 	}
 
+	// Create empty layer for delaunay triangles
 	triangleLayer = new Layer();
 
-	view.onClick = save;
-
-	view.onFrame = function() {
-		for ( var p = 0; p < points.length; p++ ) {
-			var offset = path.getLocationOf( points[p] ).offset;
-			offset += Math.random() / speed;
-			if ( offset > path.length ) offset = 0;
-			var curve = path.getLocationAt( offset );
-			points[p] = curve.point;
-		}
-		DelaunayRender( points );
-	};
+	// On new frame redraw
+	view.onFrame = drawFrame;
 };
 
-function save() {
-	window.open( logo.toDataURL() );
+function drawFrame() {
+	// Move each point along the path up by a random amount
+	for ( var p = 0; p < points.length; p++ ) {
+		var offset = path.getLocationOf( points[p] ).offset;
+		offset += Math.random() / speed;
+		if ( offset > path.length ) offset = 0;
+		var curve = path.getLocationAt( offset );
+		points[p] = curve.point;
+	}
+
+	// Render the triangles
+	DelaunayRender( points );
 }
 
 function DelaunayRender( points ) {
@@ -95,4 +88,8 @@ function addVertexPath( path, vertex ) {
 	var circle = new Path.Circle( point, thickness * 1.25 );
 	circle.fillColor = 'black';
 	triangleLayer.addChild( circle );
+}
+
+function save() {
+	window.open( canvas.toDataURL() );
 }
